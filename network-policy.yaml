@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: default
+spec:
+  # Apply this policy strictly to our PostgreSQL database pods
+  podSelector:
+    matchLabels:
+      cnpg.io/cluster: production-postgres
+  policyTypes:
+    - Ingress
+  ingress:
+    # 1. 🟢 FIXED MERGED RULE: Uses separate hyphens to achieve logical OR matching (Allow the CNPG Operator to connect for health checks, management, and status checks)
+    - from:
+        # Source 1: The operator namespace (Allows ports 5432 and 8000)
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - protocol: TCP
+          port: 5432
+        - protocol: TCP
+          port: 8000 # Operator management/instance API port
+          
+    # 2. 🟢 FIXED: Allow internal database intra-cluster communication (Both replication and instance API)
+    - from:
+        # Source 2: Intra-cluster pods in 'default' namespace (Allows ports 5432 and 8000)
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: production-postgres
+      ports:
+        - protocol: TCP
+          port: 5432  # Postgres Replication
+        - protocol: TCP
+          port: 8000  # 🟢 ADDED: Instance health and cross-pod communication
+
+    # 3. 🟢 OPTIONAL: Allow Prometheus metrics scraping (Uncomment if using Prometheus)
+    # - from:
+    #     - namespaceSelector:
+    #         matchLabels:
+    #           kubernetes.io/metadata.name: monitoring
+    #   ports:
+    #     - protocol: TCP
+    #       port: 9187 # Default CNPG metrics exporter port
+
+    # 4. 🟢 APPLICATION INGRESS: Allow explicit backend services to connect
+    # - from:
+    #     - podSelector:
+    #         matchLabels:
+    #           app: backend-api
+    #   ports:
+    #     - protocol: TCP
+    #       port: 5432

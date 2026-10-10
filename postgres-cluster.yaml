@@ -1,0 +1,29 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: production-postgres
+  namespace: default
+spec:
+  instances: 3 
+
+  # Storage allocation for the primary and standby databases
+  storage:
+    size: 10Gi
+    storageClass: default 
+
+  # Automated continuous backup configuration using standard objectStore credentials
+  backup:
+    barmanObjectStore:
+      destinationPath: "https://cnpgbackup16165b2a.blob.core.windows.net/postgresql-backups"
+      wal:
+        compression: gzip
+      
+      # 🟢 FIXED: Moved credentials out of the old 'azure' block into the standard provider layout
+      # 🟢 FIXED: Updated 'azurecredentials' to camelCase 'azureCredentials'
+      azureCredentials:
+        storageAccount:
+          name: cnpg-azure-backup-secret
+          key: AZURE_STORAGE_ACCOUNT
+        storageKey:
+          name: cnpg-azure-backup-secret
+          key: AZURE_STORAGE_KEY
