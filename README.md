@@ -13,6 +13,7 @@ The infrastructure enforces strict segregation between the cloud provisioning la
 *   **Security & Data Lifecycle Layer:** Implements strict inbound network isolation policies ensuring database traffic is restricted exclusively to the operator control plane and active peer nodes. It pipes continuous, Gzip-compressed Write-Ahead Logs (WAL) over TLS directly to Azure Blob Storage for sub-minute Point-in-Time Recovery capability.
 
 ---
+<img width="794" height="284" alt="image" src="https://github.com/user-attachments/assets/e89ec74a-1a4a-4ae5-8469-fb14df2eb1a2" />
 
 ## 📂 Repository Structure
 
